@@ -9,3 +9,6 @@ required_apps = ["erpnext"]
 
 # Fixtures are exported with explicit filters only (docs/04 §2.2).
 fixtures: list = []
+
+# The Vite frontend is a single-page app under /cb.
+website_route_rules = [{"from_route": "/cb/<path:app_path>", "to_route": "cb"}]

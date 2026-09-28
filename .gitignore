@@ -3,3 +3,5 @@ __pycache__/
 *.egg-info
 node_modules/
 cb_spike/public/frontend/
+cb_spike/www/cb.html
+frontend/node_modules/
