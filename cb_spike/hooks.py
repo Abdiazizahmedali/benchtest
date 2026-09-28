@@ -1,0 +1,11 @@
+app_name = "cb_spike"
+app_title = "CB Spike"
+app_publisher = "CentralBench"
+app_description = "CB Spike business system"
+app_email = "engineering@centralbench.com"
+app_license = "Proprietary"
+
+required_apps = ["erpnext"]
+
+# Fixtures are exported with explicit filters only (docs/04 §2.2).
+fixtures: list = []
