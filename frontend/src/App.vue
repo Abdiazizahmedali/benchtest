@@ -38,13 +38,41 @@ const prices = createListResource({
 })
 watch(signedIn, (yes) => yes && prices.fetch(), { immediate: true })
 
-const erpMenu = computed(() =>
-  (prices.data || []).map((p) => ({
-    id: p.item_code, group: 'ERP items', name: p.item_name || p.item_code, desc: p.item_code, price: p.price_list_rate,
-  })),
+const items = createListResource({
+  doctype: 'Item',
+  fields: ['name', 'item_group', 'description'],
+  filters: { is_sales_item: 1, disabled: 0 },
+  pageLength: 200,
+})
+watch(signedIn, (yes) => yes && items.fetch(), { immediate: true })
+const erpMenu = computed(() => {
+  const info = Object.fromEntries((items.data || []).map((i) => [i.name, i]))
+  return (prices.data || []).map((p) => ({
+    id: p.item_code,
+    group: info[p.item_code]?.item_group || 'Menu',
+    name: p.item_name || p.item_code,
+    desc: (info[p.item_code]?.description || '').replace(/<[^>]*>/g, ''),
+    price: p.price_list_rate,
+  }))
+})
+const live = computed(() => erpMenu.value.length > 0)
+
+// Orders placed while signed in become real Sales Orders in the ERP.
+const today = new Date().toISOString().slice(0, 10)
+const orders = createListResource({
+  doctype: 'Sales Order',
+  fields: ['name', 'po_no', 'grand_total', 'total_qty', 'creation'],
+  filters: { transaction_date: today, docstatus: 0 },
+  orderBy: 'creation desc',
+  pageLength: 50,
+})
+watch(signedIn, (yes) => yes && orders.fetch(), { immediate: true })
+const placeOrder = createResource({ url: 'cb_cb_demo.api.place_order', method: 'POST' })
+const stageOf = reactive({})
+const menu = computed(() => (live.value ? erpMenu.value : DEMO_MENU))
+const source = computed(() =>
+  live.value ? 'Live menu and prices from your ERP' : 'Sample menu — sign in to use your ERP',
 )
-const menu = computed(() => (erpMenu.value.length ? erpMenu.value : DEMO_MENU))
-const source = computed(() => (erpMenu.value.length ? 'Live prices from your ERP' : 'Sample menu'))
 
 const release = ref('…')
 onMounted(async () => {
@@ -77,11 +105,24 @@ const lines = computed(() =>
 )
 const itemCount = computed(() => lines.value.reduce((n, l) => n + l.qty, 0))
 const total = computed(() => lines.value.reduce((n, l) => n + l.qty * l.price, 0))
+const allTickets = computed(() =>
+  live.value
+    ? (orders.data || []).map((o) => ({
+        no: o.name,
+        table: o.po_no || '—',
+        total: o.grand_total,
+        items: [`${o.total_qty} item${o.total_qty === 1 ? '' : 's'}`],
+        at: new Date(o.creation.replace(' ', 'T')).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }),
+        get stage() { return stageOf[o.name] || 'New' },
+        set stage(v) { stageOf[o.name] = v },
+      }))
+    : tickets.value,
+)
 const byStage = computed(() =>
-  Object.fromEntries(STAGES.map((s) => [s, tickets.value.filter((t) => t.stage === s)])),
+  Object.fromEntries(STAGES.map((s) => [s, allTickets.value.filter((t) => t.stage === s)])),
 )
 const takings = computed(() =>
-  tickets.value.filter((t) => t.stage === 'Served').reduce((n, t) => n + t.total, 0),
+  allTickets.value.filter((t) => t.stage === 'Served').reduce((n, t) => n + t.total, 0),
 )
 
 function add(item) { order.set(item.id, (order.get(item.id) || 0) + 1) }
@@ -89,8 +130,17 @@ function dec(id) {
   const q = (order.get(id) || 0) - 1
   q > 0 ? order.set(id, q) : order.delete(id)
 }
-function place() {
+async function place() {
   if (!itemCount.value) return
+  if (live.value) {
+    await placeOrder.submit({
+      table: table.value,
+      lines: lines.value.map((l) => ({ item_code: l.id, qty: l.qty })),
+    })
+    order.clear()
+    await orders.reload()
+    return
+  }
   tickets.value.unshift({
     no: nextTicket++, table: table.value, stage: 'New', total: total.value,
     items: lines.value.map((l) => `${l.qty}× ${l.name}`),
@@ -191,9 +241,22 @@ onUnmounted(() => clearInterval(clock))
           <span>{{ itemCount }} item{{ itemCount === 1 ? '' : 's' }}</span>
           <span class="text-2xl font-semibold text-ink-gray-9">{{ kes(total) }}</span>
         </div>
-        <Button variant="solid" size="lg" class="mt-3 w-full" :disabled="!itemCount" @click="place">
+        <Button
+          variant="solid"
+          size="lg"
+          class="mt-3 w-full"
+          :disabled="!itemCount"
+          :loading="placeOrder.loading"
+          @click="place"
+        >
           Send to kitchen
         </Button>
+        <p v-if="placeOrder.error" class="mt-2 text-sm text-ink-red-4">
+          {{ placeOrder.error.messages?.[0] || 'The order could not be placed.' }}
+        </p>
+        <p v-else-if="placeOrder.data" class="mt-2 text-sm text-ink-green-3">
+          Sales order {{ placeOrder.data.name }} created · {{ kes(placeOrder.data.grand_total) }}
+        </p>
       </section>
 
       <section class="rounded-xl border bg-surface-white p-4 lg:col-span-2">
