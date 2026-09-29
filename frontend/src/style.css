@@ -69,3 +69,5 @@ input[type='search'], select { font: inherit; padding: 7px 10px; border: 1px sol
 .t-enter-from, .t-leave-to { opacity: 0; transform: translateY(-6px); }
 .t-enter-active, .t-leave-active { transition: all 0.2s ease; }
 .foot { text-align: center; color: var(--muted); font-size: 0.78rem; margin-top: auto; }
+.specials { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 14%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); font-size: 0.9rem; cursor: pointer; }
+.item.special { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }

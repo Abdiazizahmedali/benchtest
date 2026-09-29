@@ -11,8 +11,10 @@ const MENU = [
   { id: 'soda', cat: 'Drinks', name: 'Soda', desc: '300 ml, chilled', price: 80, emoji: '🥤' },
   { id: 'juice', cat: 'Drinks', name: 'Fresh passion juice', desc: 'Pressed daily', price: 250, emoji: '🧃' },
   { id: 'chai', cat: 'Drinks', name: 'Chai', desc: 'Spiced milk tea', price: 100, emoji: '☕' },
+  { id: 'nyama-choma', cat: 'Specials', name: 'Nyama choma', desc: 'Grilled goat, served with kachumbari', price: 1500, emoji: '🍖', special: true },
+  { id: 'platter', cat: 'Specials', name: 'Family fish platter', desc: 'Two whole tilapia, ugali and greens for four', price: 3200, emoji: '🍽️', special: true },
 ]
-const CATS = ['All', 'Fish', 'Sides', 'Drinks']
+const CATS = ['All', 'Specials', 'Fish', 'Sides', 'Drinks']
 const STAGES = ['New', 'Preparing', 'Ready', 'Served']
 
 const cat = ref('All')
@@ -101,12 +103,13 @@ onUnmounted(() => clearInterval(clock))
           <h2>Menu</h2>
           <input v-model="search" type="search" placeholder="Search dishes" aria-label="Search dishes" />
         </div>
+        <p class="specials" @click="cat = 'Specials'">⭐ Today's specials: nyama choma and the family fish platter</p>
         <nav class="tabs" role="tablist">
           <button v-for="c in CATS" :key="c" role="tab" :aria-selected="cat === c" :class="{ on: cat === c }" @click="cat = c">{{ c }}</button>
         </nav>
         <ul class="items">
           <li v-for="m in visible" :key="m.id">
-            <button class="item" @click="add(m)">
+            <button class="item" :class="{ special: m.special }" @click="add(m)">
               <span class="emoji" aria-hidden="true">{{ m.emoji }}</span>
               <span class="meta">
                 <strong>{{ m.name }}</strong>
