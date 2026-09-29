@@ -1,0 +1,16 @@
+{
+  "name": "cb_cb_demo-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --base=/assets/cb_cb_demo/frontend/ && node copy-html.js"
+  },
+  "dependencies": {
+    "vue": "3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "5.2.1",
+    "vite": "5.4.11"
+  }
+}

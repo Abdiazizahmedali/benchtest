@@ -3,3 +3,4 @@ __pycache__/
 *.egg-info
 node_modules/
 cb_cb_demo/public/frontend/
+cb_cb_demo/www/cb.html
