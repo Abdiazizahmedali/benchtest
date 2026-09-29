@@ -99,14 +99,23 @@ def seed_menu():
 def seed_walk_in_customer():
     if frappe.db.exists("Customer", WALK_IN):
         return
-    group = frappe.db.get_single_value("Selling Settings", "customer_group")
-    territory = frappe.db.get_single_value("Selling Settings", "territory")
     frappe.get_doc(
         {
             "doctype": "Customer",
             "customer_name": WALK_IN,
             "customer_type": "Individual",
-            "customer_group": group or "All Customer Groups",
-            "territory": territory or "All Territories",
+            "customer_group": _leaf("Customer Group", "customer_group", prefer="Individual"),
+            "territory": _leaf("Territory", "territory", prefer="Kenya"),
         }
     ).insert()
+
+
+def _leaf(doctype, setting, prefer):
+    """A non-group record: ERPNext rejects group nodes (e.g. "All Customer Groups")."""
+    for name in (frappe.db.get_single_value("Selling Settings", setting), prefer):
+        if name and frappe.db.get_value(doctype, name, "is_group") == 0:
+            return name
+    name = frappe.db.get_value(doctype, {"is_group": 0}, "name")
+    if not name:
+        frappe.throw(f"No non-group {doctype} found")
+    return name

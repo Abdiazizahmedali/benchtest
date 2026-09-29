@@ -27,8 +27,11 @@ const STAGE_THEME = { New: 'orange', Preparing: 'blue', Ready: 'green', Served: 
 
 // --- live data from the ERP --------------------------------------------------------
 const ping = createResource({ url: 'ping', auto: true })
-const session = createResource({ url: 'frappe.auth.get_logged_user', auto: true })
-const signedIn = computed(() => session.data && session.data !== 'Guest')
+// Frappe sets a `user_id` cookie on every response ("Guest" when signed out).
+const cookie = (name) =>
+  decodeURIComponent(document.cookie.split('; ').find((c) => c.startsWith(name + '='))?.split('=')[1] || '')
+const session = { data: cookie('user_id') || 'Guest' }
+const signedIn = computed(() => session.data !== 'Guest')
 const prices = createListResource({
   doctype: 'Item Price',
   fields: ['item_code', 'item_name', 'price_list_rate'],
