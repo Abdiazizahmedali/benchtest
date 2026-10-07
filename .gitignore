@@ -1,0 +1,8 @@
+*.pyc
+__pycache__/
+*.egg-info
+node_modules/
+cb_cb_demo_9827/public/frontend/
+cb_cb_demo_9827/www/cb.html
+frontend/auto-imports.d.ts
+frontend/components.d.ts
