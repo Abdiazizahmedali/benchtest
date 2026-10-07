@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "name": "cb_nairobi_fresh_kitchen_2a76",
+  "scripts": {
+    "postinstall": "cd frontend && yarn install --check-files",
+    "dev": "cd frontend && yarn dev",
+    "build": "cd frontend && yarn build"
+  }
+}
