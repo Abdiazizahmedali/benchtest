@@ -1,0 +1,8 @@
+*.pyc
+__pycache__/
+*.egg-info
+node_modules/
+cb_nairobi_fresh_kitchen/public/frontend/
+cb_nairobi_fresh_kitchen/www/cb.html
+frontend/auto-imports.d.ts
+frontend/components.d.ts
